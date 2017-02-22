@@ -44,7 +44,6 @@ function init() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   renderer.sortObjects = false;
   container.appendChild(renderer.domElement);
-
 }
 
 

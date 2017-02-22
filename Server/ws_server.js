@@ -65,6 +65,20 @@ udpPort.on("message", function(oscMessage) {
       }
     }
   }
+
+  if(oscMessage.address === '/user/get_all/') {
+    console.log("backend requesting all users");
+    var msg = {
+      address: "/user/existing/",
+      args: []
+    };
+    if(clients.length > 0) {
+      for(var i = 0 ; i < clients.length ; i++ ) {
+        msg.args.push(clients[i].remoteAddress);
+      }
+    }
+    udpPort.send(msg, "localhost", 57120);
+  }
 });
 
 udpPort.on("error", function(err) {
