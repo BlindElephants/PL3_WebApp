@@ -16,13 +16,7 @@ All messages are relayed from the Client to the Server via WebSocket connection.
 
 ## Server
 
-Run the server by executing
-
-```
-node ws_server.js
-```
-
-This is a middle layer translator between the client connections and the backend C++ application.
+Node Server (middle-layer) has been removed (no longer needed). See PL3_WebApp_Backend repo, backend, including websockets connections to client browsers are now handed entirely in C++ with openFrameworks, ofxLibwebsockets, and jsoncpp.
 
 ## SC_System
 

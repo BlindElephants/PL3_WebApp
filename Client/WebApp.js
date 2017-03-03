@@ -47,6 +47,8 @@ window.addEventListener('mousemove', function(event) {
 
 window.addEventListener('mouseup', function(event) {
   if(lockObject) {
+    lockObject.object.position.x = mouse.x*window.innerWidth * 0.5;
+    lockObject.object.position.y = mouse.y*window.innerHeight* 0.5;
     if(downTime <= 0.2) {
       objectRemoved(lockObject.object);
       objects.remove(lockObject.object);
@@ -117,6 +119,12 @@ window.addEventListener('resize', function() {
   camera.bottom = window.innerHeight/ -2;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  socket.send(JSON.stringify({
+    address: "/client/dimensions",
+    args: [window.innerWidth, window.innerHeight]
+  }));
+
 }, false);
 
 

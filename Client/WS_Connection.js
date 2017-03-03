@@ -66,6 +66,14 @@ function doOnMessage(event) {
     socket.send(JSON.stringify(response));
   }
 
+  if(msg.address === "/get/dimensions") {
+    var response = {
+      address: "/client/dimensions",
+      args: [window.innerWidth, window.innerHeight]
+    }
+    socket.send(JSON.stringify(response));
+  }
+
   if(msg.address === "/instruction/add") {
 
   }
