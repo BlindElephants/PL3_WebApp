@@ -134,33 +134,31 @@ wsServer.on('request', function(request) {
 
   connection.on('message', function(message) {
     if(message.type === 'utf8') {
-
-      // let m = JSON.parse(message.utf8Data);
-
-      // console.log(message.utf8Data);
-
-      // if(m.address() === "/user/action/") {
-      //   udpPort.send(m, "localhost", 8888);
-      // }
       var m = JSON.parse(message.utf8Data);
+      udpPort.send({
+        address: m.address,
+        args: [connection.remoteAddress, m.args]
+      }, "localhost", 8888);
 
       // console.log(m);
 
-      if(m.address === "/user/action/") {
-        console.log(m);
-        udpPort.send({
-          address: m.address,
-          args: m.args
-        }, "localhost", 8888);
-      }
+      // if(m.address === "/user/action/") {
+      //   console.log(m);
+      //   udpPort.send({
+      //     address: m.address,
+      //     args: m.args
+      //   }, "localhost", 8888);
+      // }
       // console.log(JSON.parse(message.utf8Data));
 
-      if(message.utf8Data === "") {
+      // if(message.utf8Data === "") {
         // udpPort.send({
         //       address: "/test_message/",
         //       args: ["default", 100]
         //   }, "localhost", 57120);
-      }
+      // }
+
+      // console.log(m);
 
 
       // var msg = {

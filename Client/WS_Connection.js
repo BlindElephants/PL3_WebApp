@@ -13,6 +13,31 @@ function doOnOpen(event) {
   console.log(socket.readyState);
 }
 
+function objectAdded(thisObject) {
+  var msg = {
+    address: "/client/object/added",
+    args: [thisObject.position.x, thisObject.position.y]
+  }
+  socket.send(JSON.stringify(msg));
+}
+
+function objectMoved(thisObject, previousPosition) {
+  var msg = {
+    address: "/client/object/moved",
+    args: [previousPosition.x, previousPosition.y, thisObject.position.x, thisObject.position.y]
+  }
+  socket.send(JSON.stringify(msg));
+}
+
+function objectRemoved(thisObject) {
+  var msg = {
+    address: "/client/object/removed",
+    args: [thisObject.position.x, thisObject.position.y]
+  }
+  socket.send(JSON.stringify(msg));
+}
+
+
 function doOnMessage(event) {
   // console.log(event.data);
   //----this is where calls should be made based on received messages from the server
@@ -25,10 +50,38 @@ function doOnMessage(event) {
 
   var msg = JSON.parse(event.data);
   // console.log(msg);
+
+
+  /*
+    This sends a response that contains the positions of every object currently on the client's screen
+  */
+  if(msg.address === "/get/objects") {
+    var response = {
+      address: "/client/objects",
+      args: []
+    }
+    for(var i = 0 ; i < objects.children.length ; i ++ ) {
+      response.args.push(objects.children[i].position);
+    }
+    socket.send(JSON.stringify(response));
+  }
+
+  if(msg.address === "/instruction/add") {
+
+  }
+
+  if(msg.address === "/instruction/move") {
+
+  }
+
+  if(msg.address === "/instruction/remove") {
+
+  }
+
   if(msg.address === "/client_message/") {
     // console.log(msg);
   // } else if(msg.address === "/geom/add/") {
-    console.log("adding geometry");
+    // console.log("adding geometry");
     // var cubeGeometry = new THREE.CubeGeometry(50, 100, 10);
     // var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x1ec876});
     // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
@@ -41,21 +94,21 @@ function doOnMessage(event) {
     // cube.delayDrawing = (msg.args[5]);
     // cube.drawingDuration = (msg.args[4]);
 
-    var thisSize = 80;
-    var circ = new THREE.CircleGeometry(12, 64);
-    var m = new THREE.MeshBasicMaterial({color:0x000000});
-    var c = new THREE.Mesh(circ, m);
-    c.position.x = (msg.args[2]-0.5)*window.innerWidth;
-    c.position.y = (msg.args[3]-0.5)*window.innerHeight;
-    c.position.z = 0.0;
-    c.isDrawing = false;
-    c.delayDrawing = (msg.args[5]);
-    c.drawingDuration = (msg.args[4]);
-    c.drawingTime = (msg.args[4]);
-    c.scaleStep = 1.0 / c.drawingDuration;
-    // scene.add(cube);
-    SceneGeom.push(c);
-    // SceneGeom.push(cube);
+    // var thisSize = 80;
+    // var circ = new THREE.CircleGeometry(12, 64);
+    // var m = new THREE.MeshBasicMaterial({color:0x000000});
+    // var c = new THREE.Mesh(circ, m);
+    // c.position.x = (msg.args[2]-0.5)*window.innerWidth;
+    // c.position.y = (msg.args[3]-0.5)*window.innerHeight;
+    // c.position.z = 0.0;
+    // c.isDrawing = false;
+    // c.delayDrawing = (msg.args[5]);
+    // c.drawingDuration = (msg.args[4]);
+    // c.drawingTime = (msg.args[4]);
+    // c.scaleStep = 1.0 / c.drawingDuration;
+    // // scene.add(cube);
+    // SceneGeom.push(c);
+    // // SceneGeom.push(cube);
   }
 }
 

@@ -1,9 +1,13 @@
-var mouse = new THREE.Vector2(), INTERSECTED;
-var intersectedIndex = -1;
+var mouse = new THREE.Vector2();
 var intersects = [];
-var objectSize = window.innerHeight*0.1;
 var SceneGeom = [];
 var clock = new THREE.Clock;
+
+var lockObject = null;
+var lockObjectStartingPosition = null;
+var downTime = 0.0;
+
+var objects = new THREE.Group();
 
 console.log("Web App loaded");
 
@@ -25,60 +29,102 @@ camera.position.y = 0;
 camera.position.z = 200;
 scene.add(camera);
 
-document.addEventListener('mousemove', onDocumentMouseMove, false);
-function onDocumentMouseMove(event) {
+var objectSize = window.innerHeight * 0.05;
+
+scene.add(objects);
+
+window.addEventListener('mousemove', function(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
 
-document.addEventListener('touchstart', onDocumentTouchStart, false);
-
-function onDocumentTouchStart(event) {
-  if(event.touches.length === 1) {
-    // event.preventDefault();
-    var touch = {
-      x: null,
-      y: null
-    };
-    touch.x = ((event.touches[0].pageX) / window.innerWidth) * 2 - 1;
-    touch.y = -((event.touches[0].pageY) / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(touch, camera);
-
-    intersects = raycaster.intersectObjects(scene.children);
-
-    if(intersects.length) {
-      let m = {
-        address: "/user/action/",
-        args: [0, 0, 0]
-      };
-      socket.send(JSON.stringify(m));
-    }
+  if(lockObject != null) {
+    lockObject.object.position.x = mouse.x*window.innerWidth * 0.5;
+    lockObject.object.position.y = mouse.y*window.innerHeight* 0.5;
   }
-}
+}, false);
+
+
+window.addEventListener('mouseup', function(event) {
+  if(lockObject) {
+    if(downTime <= 0.2) {
+      objectRemoved(lockObject.object);
+      objects.remove(lockObject.object);
+    } else {
+      objectMoved(lockObject.object, lockObjectStartingPosition);
+      lockObjectStartingPosition = null;
+    }
+    lockObject = null;
+  }
+}, false);
+
+// document.addEventListener('touchstart', onDocumentTouchStart, false);
+
+// function onDocumentTouchStart(event) {
+//   if(event.touches.length === 1) {
+//     // event.preventDefault();
+//     var touch = {
+//       x: null,
+//       y: null
+//     };
+//     touch.x = ((event.touches[0].pageX) / window.innerWidth) * 2 - 1;
+//     touch.y = -((event.touches[0].pageY) / window.innerHeight) * 2 + 1;
+//     raycaster.setFromCamera(touch, camera);
+//
+//     intersects = raycaster.intersectObjects(scene.children);
+//
+//     if(intersects.length) {
+//       let m = {
+//         address: "/user/action/",
+//         args: [0, 0, 0]
+//       };
+//       socket.send(JSON.stringify(m));
+//     }
+//   }
+// }
 
 window.addEventListener('mousedown', function(event) {
   raycaster.setFromCamera(mouse, camera);
-  intersects = raycaster.intersectObjects(scene.children);
+  intersects = raycaster.intersectObjects(objects.children);
   if(intersects.length) {
-    let m = {
-      address: "/user/action/",
-      args: [0, 0, 0]
-    };
-    socket.send(JSON.stringify(m));
+    // let m = {
+    //   address: "/user/action/",
+    //   args: [0, 0, 0]
+    // };
+    // socket.send(JSON.stringify(m));
+
+    lockObject = intersects[0];
+    lockObjectStartingPosition = new THREE.Vector2(lockObject.object.position.x, lockObject.object.position.y);
+  } else {
+    var circ = new THREE.CircleGeometry(objectSize*0.5, 32);
+    var m = new THREE.MeshBasicMaterial({color:0x000000});
+    var c = new THREE.Mesh(circ, m);
+    c.position.x = mouse.x*window.innerWidth * 0.5;
+    c.position.y = mouse.y*window.innerHeight* 0.5;
+    c.position.z = 0.0;
+    objects.add(c);
+
+    objectAdded(c);
   }
+  downTime = 0.0;
 })
 
 
-window.addEventListener('resize', onWindowResize, false);
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+window.addEventListener('resize', function() {
+  camera.left   = window.innerWidth / -2;
+  camera.right  = window.innerWidth /  2;
+  camera.top    = window.innerHeight/  2;
+  camera.bottom = window.innerHeight/ -2;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-}
+}, false);
+
 
 function update() {
   var d = clock.getDelta();
+  if(lockObject != null) {
+    downTime += d;
+  }
   if(SceneGeom.length > 0) {
     for(var i = SceneGeom.length-1 ; i>=0 ; i --) {
       if(SceneGeom[i].isDrawing) {
