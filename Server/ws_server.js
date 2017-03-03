@@ -29,11 +29,11 @@ var getIPAddresses = function() {
 var udpPort = new osc.UDPPort({
   //this sets up the receive port
   localAddress: "0.0.0.0",
-  localPort: 57121,
+  localPort: 8887,
 
   //this sets up the send port
   remoteAddress: "127.0.0.1",
-  remotePort: 57120
+  remotePort: 8888
 });
 
 udpPort.on("ready", function() {
@@ -46,7 +46,7 @@ udpPort.on("ready", function() {
   udpPort.send({
         address: "/test_message/",
         args: ["default", 100]
-    }, "localhost", 57120);
+    }, "localhost", 8888);
 });
 
 //this is what happens if udp receives a message (anything with an appropriate OSC-formatted address)
@@ -77,7 +77,7 @@ udpPort.on("message", function(oscMessage) {
         msg.args.push(clients[i].remoteAddress);
       }
     }
-    udpPort.send(msg, "localhost", 57120);
+    udpPort.send(msg, "localhost", 8888);
   }
 });
 
@@ -126,7 +126,7 @@ wsServer.on('request', function(request) {
   udpPort.send({
     address: "/user/add/",
     args: [connection.remoteAddress]
-  }, "localhost", 57120);
+  }, "localhost", 8888);
 
 
   clients.push(connection);
@@ -134,6 +134,26 @@ wsServer.on('request', function(request) {
 
   connection.on('message', function(message) {
     if(message.type === 'utf8') {
+
+      // let m = JSON.parse(message.utf8Data);
+
+      // console.log(message.utf8Data);
+
+      // if(m.address() === "/user/action/") {
+      //   udpPort.send(m, "localhost", 8888);
+      // }
+      var m = JSON.parse(message.utf8Data);
+
+      // console.log(m);
+
+      if(m.address === "/user/action/") {
+        console.log(m);
+        udpPort.send({
+          address: m.address,
+          args: m.args
+        }, "localhost", 8888);
+      }
+      // console.log(JSON.parse(message.utf8Data));
 
       if(message.utf8Data === "") {
         // udpPort.send({
@@ -160,7 +180,7 @@ wsServer.on('request', function(request) {
     udpPort.send({
       address: "/user/remove/",
       args: [connection.remoteAddress]
-    }, "localhost", 57120);
+    }, "localhost", 8888);
 
     for(var i = clients.length-1 ; i >= 0 ; i -- ) {
 
