@@ -1,6 +1,5 @@
 var mouse = new THREE.Vector2();
 var intersects = [];
-// var SceneGeom = [];
 var clock = new THREE.Clock;
 
 var lockObject = null;
@@ -41,7 +40,6 @@ window.addEventListener('mousemove', function(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
   if(lockObject != null) {
     lockObject.object.position.x = mouse.x*window.innerWidth * 0.5;
     lockObject.object.position.y = mouse.y*window.innerHeight* 0.5;
@@ -93,12 +91,6 @@ window.addEventListener('mousedown', function(event) {
   raycaster.setFromCamera(mouse, camera);
   intersects = raycaster.intersectObjects(objectsGroup.children);
   if(intersects.length) {
-    // let m = {
-    //   address: "/user/action/",
-    //   args: [0, 0, 0]
-    // };
-    // socket.send(JSON.stringify(m));
-
     lockObject = intersects[0];
     lockObjectStartingPosition = new THREE.Vector2(lockObject.object.position.x, lockObject.object.position.y);
   } else {
@@ -109,12 +101,10 @@ window.addEventListener('mousedown', function(event) {
     c.position.y = mouse.y*window.innerHeight* 0.5;
     c.position.z = 0.0;
     objectsGroup.add(c);
-
     objectAdded(c);
   }
   downTime = 0.0;
 })
-
 
 window.addEventListener('resize', function() {
   camera.left   = window.innerWidth / -2;
@@ -123,21 +113,17 @@ window.addEventListener('resize', function() {
   camera.bottom = window.innerHeight/ -2;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-
   socket.send(JSON.stringify({
     address: "/client/dimensions",
     args: [window.innerWidth, window.innerHeight]
   }));
-
 }, false);
-
 
 function update() {
   var d = clock.getDelta();
   if(lockObject != null) {
     downTime += d;
   }
-
   if(instructions.length > 0) {
     for(var i = instructions.length-1 ; i>=0 ; i-- ) {
       if(instructions[i].isDrawing) {
@@ -155,6 +141,8 @@ function update() {
             let s = THREE.Math.mapLinear(instructions[i].drawingDuration, 0.0, instructions[i].drawingTime, 2.0, 1.0);
             instructions[i].scale.set(s, s, 1.0);
           }
+
+          //This is for color adjustment
           let c = (instructions[i].drawingDuration/instructions[i].drawingTime);
           c = THREE.Math.clamp(Math.abs((c*2.0)-1.0), 0.0, 1.0);
           instructions[i].material.color = {
@@ -162,7 +150,6 @@ function update() {
             g: c,
             b: 1
           };
-          // instructions[i].material.needsUpdate=true;
         }
       } else {
         instructions[i].drawingDelay -= d;
@@ -175,29 +162,6 @@ function update() {
       }
     }
   }
-
-  // if(SceneGeom.length > 0) {
-  //   for(var i = SceneGeom.length-1 ; i>=0 ; i --) {
-  //     if(SceneGeom[i].isDrawing) {
-  //       SceneGeom[i].drawingDuration -= d;
-  //       if(SceneGeom[i].drawingDuration <= 0.0) {
-  //         scene.remove(SceneGeom[i]);
-  //         SceneGeom.splice(i, 1);
-  //         console.log("geom removed");
-  //       } else {
-  //         let s = SceneGeom[i].drawingDuration / SceneGeom[i].drawingTime;
-  //         SceneGeom[i].scale.set(s, s, SceneGeom[i].scale.z);
-  //       }
-  //     } else {
-  //       SceneGeom[i].delayDrawing -= d;
-  //       if(SceneGeom[i].delayDrawing <= 0.0) {
-  //         SceneGeom[i].isDrawing = true;
-  //         console.log("setting geom to draw : [" + i + "]");
-  //         scene.add(SceneGeom[i]);
-  //       }
-  //     }
-  //   }
-  // }
   renderer.render(scene, camera);
   requestAnimationFrame(update);
 }
