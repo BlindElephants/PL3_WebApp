@@ -1,13 +1,16 @@
 var mouse = new THREE.Vector2();
 var intersects = [];
-var SceneGeom = [];
+// var SceneGeom = [];
 var clock = new THREE.Clock;
 
 var lockObject = null;
 var lockObjectStartingPosition = null;
 var downTime = 0.0;
 
-var objects = new THREE.Group();
+var instructions = [];
+
+var objectsGroup = new THREE.Group();
+var instructionsGroup = new THREE.Group();
 
 console.log("Web App loaded");
 
@@ -31,7 +34,8 @@ scene.add(camera);
 
 var objectSize = window.innerHeight * 0.05;
 
-scene.add(objects);
+scene.add(instructionsGroup);
+scene.add(objectsGroup);
 
 window.addEventListener('mousemove', function(event) {
   event.preventDefault();
@@ -51,7 +55,7 @@ window.addEventListener('mouseup', function(event) {
     lockObject.object.position.y = mouse.y*window.innerHeight* 0.5;
     if(downTime <= 0.2) {
       objectRemoved(lockObject.object);
-      objects.remove(lockObject.object);
+      objectsGroup.remove(lockObject.object);
     } else {
       objectMoved(lockObject.object, lockObjectStartingPosition);
       lockObjectStartingPosition = null;
@@ -87,7 +91,7 @@ window.addEventListener('mouseup', function(event) {
 
 window.addEventListener('mousedown', function(event) {
   raycaster.setFromCamera(mouse, camera);
-  intersects = raycaster.intersectObjects(objects.children);
+  intersects = raycaster.intersectObjects(objectsGroup.children);
   if(intersects.length) {
     // let m = {
     //   address: "/user/action/",
@@ -104,7 +108,7 @@ window.addEventListener('mousedown', function(event) {
     c.position.x = mouse.x*window.innerWidth * 0.5;
     c.position.y = mouse.y*window.innerHeight* 0.5;
     c.position.z = 0.0;
-    objects.add(c);
+    objectsGroup.add(c);
 
     objectAdded(c);
   }
@@ -133,28 +137,67 @@ function update() {
   if(lockObject != null) {
     downTime += d;
   }
-  if(SceneGeom.length > 0) {
-    for(var i = SceneGeom.length-1 ; i>=0 ; i --) {
-      if(SceneGeom[i].isDrawing) {
-        SceneGeom[i].drawingDuration -= d;
-        if(SceneGeom[i].drawingDuration <= 0.0) {
-          scene.remove(SceneGeom[i]);
-          SceneGeom.splice(i, 1);
-          console.log("geom removed");
+
+  if(instructions.length > 0) {
+    for(var i = instructions.length-1 ; i>=0 ; i-- ) {
+      if(instructions[i].isDrawing) {
+        instructions[i].drawingDuration -= d;
+        if(instructions[i].drawingDuration <= 0.0) {
+          instructionsGroup.remove(instructions[i]);
+          instructions.splice(i, 1);
+          console.log("instruction removed");
         } else {
-          let s = SceneGeom[i].drawingDuration / SceneGeom[i].drawingTime;
-          SceneGeom[i].scale.set(s, s, SceneGeom[i].scale.z);
+          //do some scaling/resizing here (animation)
+          if(instructions[i].instrType==="ADD") {
+            let s = THREE.Math.mapLinear(instructions[i].drawingDuration, 0.0, instructions[i].drawingTime, 1.0, 2.0);
+            instructions[i].scale.set(s, s, 1.0);
+          } else if(instructions[i].instrType === "REMOVE") {
+            let s = THREE.Math.mapLinear(instructions[i].drawingDuration, 0.0, instructions[i].drawingTime, 2.0, 1.0);
+            instructions[i].scale.set(s, s, 1.0);
+          }
+          let c = (instructions[i].drawingDuration/instructions[i].drawingTime);
+          c = THREE.Math.clamp(Math.abs((c*2.0)-1.0), 0.0, 1.0);
+          instructions[i].material.color = {
+            r: c,
+            g: c,
+            b: 1
+          };
+          // instructions[i].material.needsUpdate=true;
         }
       } else {
-        SceneGeom[i].delayDrawing -= d;
-        if(SceneGeom[i].delayDrawing <= 0.0) {
-          SceneGeom[i].isDrawing = true;
-          console.log("setting geom to draw : [" + i + "]");
-          scene.add(SceneGeom[i]);
+        instructions[i].drawingDelay -= d;
+        if(instructions[i].drawingDelay <= 0.0) {
+          instructions[i].isDrawing = true;
+          console.log("setting instruction to draw: [" + i + "]");
+          console.log("type: " + instructions[i].instrType);
+          instructionsGroup.add(instructions[i]);
         }
       }
     }
   }
+
+  // if(SceneGeom.length > 0) {
+  //   for(var i = SceneGeom.length-1 ; i>=0 ; i --) {
+  //     if(SceneGeom[i].isDrawing) {
+  //       SceneGeom[i].drawingDuration -= d;
+  //       if(SceneGeom[i].drawingDuration <= 0.0) {
+  //         scene.remove(SceneGeom[i]);
+  //         SceneGeom.splice(i, 1);
+  //         console.log("geom removed");
+  //       } else {
+  //         let s = SceneGeom[i].drawingDuration / SceneGeom[i].drawingTime;
+  //         SceneGeom[i].scale.set(s, s, SceneGeom[i].scale.z);
+  //       }
+  //     } else {
+  //       SceneGeom[i].delayDrawing -= d;
+  //       if(SceneGeom[i].delayDrawing <= 0.0) {
+  //         SceneGeom[i].isDrawing = true;
+  //         console.log("setting geom to draw : [" + i + "]");
+  //         scene.add(SceneGeom[i]);
+  //       }
+  //     }
+  //   }
+  // }
   renderer.render(scene, camera);
   requestAnimationFrame(update);
 }

@@ -60,8 +60,8 @@ function doOnMessage(event) {
       address: "/client/objects",
       args: []
     }
-    for(var i = 0 ; i < objects.children.length ; i ++ ) {
-      response.args.push(objects.children[i].position);
+    for(var i = 0 ; i < objectsGroup.children.length ; i ++ ) {
+      response.args.push(objectsGroup.children[i].position);
     }
     socket.send(JSON.stringify(response));
   }
@@ -75,15 +75,59 @@ function doOnMessage(event) {
   }
 
   if(msg.address === "/instruction/add") {
-
+    let o = new THREE.Mesh(new THREE.RingGeometry((objectSize*0.5*1.2)-2, objectSize*0.5*1.2, 32, 8), new THREE.MeshBasicMaterial( {color: 0x000000} ));
+    o.position.set(msg.args[0], msg.args[1], 0);
+    o.drawingDuration = msg.args[2];
+    o.drawingTime     = msg.args[2];
+    o.drawingDelay    = msg.args[3];
+    o.instrType = "ADD";
+    // if(msg.args[3] == 0) {
+      // o.isDrawing = true;
+      // instructionsGroup.add(o);
+    // } else {
+      o.isDrawing = false;
+    // }
+    instructions.push(o);
   }
 
   if(msg.address === "/instruction/move") {
+    let g = new THREE.Geometry();
 
+    g.vertices.push(
+      new THREE.Vector3(msg.args[0], msg.args[1], 0),
+      new THREE.Vector3(msg.args[2], msg.args[3], 0)
+    );
+
+    //need to do some fancier curving and geometry creation here
+
+    let o = new THREE.Line(g, new THREE.MeshBasicMaterial({color:0x000000}));
+    o.drawingDuration = msg.args[4];
+    o.drawingTime     = msg.args[4];
+    o.drawingDelay    = msg.args[5];
+    o.instrType = "MOVE";
+    // if(msg.args[5] == 0) {
+      // o.isDrawing = true;
+      // instructionsGroup.add(o);
+    // } else {
+      o.isDrawing = false;
+    // }
+    instructions.push(o);
   }
 
   if(msg.address === "/instruction/remove") {
-
+    let o = new THREE.Mesh(new THREE.RingGeometry((objectSize*0.5*1.2)-2, objectSize*0.5*1.2, 32, 8), new THREE.MeshBasicMaterial( {color: 0x000000}));
+    o.position.set(msg.args[0], msg.args[1], 0);
+    o.drawingDuration = msg.args[2];
+    o.drawingTime     = msg.args[2];
+    o.drawingDelay    = msg.args[3];
+    o.instrType = "REMOVE";
+    // if(msg.args[3] == 0) {
+      // o.isDrawing = true;
+      // instructionsGroup.add(o);
+    // } else {
+      o.isDrawing = false;
+    // }
+    instructions.push(o);
   }
 
   if(msg.address === "/client_message/") {
