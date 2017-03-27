@@ -40,8 +40,6 @@ function objectRemoved(thisObject) {
 
 function doOnMessage(event) {
   var msg = JSON.parse(event.data);
-  // console.log(msg);
-
   /*
     This sends a response that contains the positions of every object currently on the client's screen
   */
@@ -90,7 +88,7 @@ function doOnMessage(event) {
     o.drawingTime     = msg.args[4];
     o.drawingDelay    = msg.args[5];
     o.instrType       = "MOVE";
-    o.isDrawing       = false;
+    o.isDrawing       = false ;
     instructions.push(o);
   }
 
@@ -101,7 +99,7 @@ function doOnMessage(event) {
     o.drawingTime     = msg.args[2];
     o.drawingDelay    = msg.args[3];
     o.instrType       = "REMOVE";
-    o.isDrawing       = false;
+    o.isDrawing       = false   ;
     instructions.push(o);
   }
 }
